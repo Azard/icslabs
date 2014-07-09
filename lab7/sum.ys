@@ -1,0 +1,43 @@
+#	Name:熊伟伦	ID:5120379076
+#	sum_list y86 asm
+		.pos 0
+init:	irmovl Stack, %esp
+		irmovl Stack, %ebp
+		irmovl ele1, %eax
+		pushl %eax
+		call sum_list
+		halt
+
+sum_list:
+		pushl %ebp
+		rrmovl %esp, %ebp
+		mrmovl 8(%ebp), %ebx		# ebx = ele1
+		xorl %eax, %eax				# eax = sum = 0
+		andl %ebx, %ebx				# while(ls)
+		je End
+
+Loop:	mrmovl (%ebx), %ecx			# get val
+		addl %ecx, %eax				# add to sum
+		mrmovl 4(%ebx), %ebx		# ebx = ele1->next
+		andl %ebx, %ebx				# ebx == 1 then:break
+		jne Loop
+
+End:	rrmovl %ebp, %esp
+		popl %ebp
+		ret
+
+# Sample linked list
+.align 4
+ele1:
+		.long 0x00a
+		.long ele2
+ele2:
+		.long 0x0b0
+		.long ele3
+ele3:
+		.long 0xc00
+		.long 0
+
+#	Stack
+		.pos 0x100
+Stack:

@@ -1,0 +1,55 @@
+#	Name:熊伟伦	ID:5120379076
+#	copy_block y86 asm
+		.pos 0
+init:	irmovl Stack, %esp
+		irmovl Stack, %ebp
+		irmovl $3, %eax
+		pushl %eax					# push len
+		irmovl dest, %eax
+		pushl %eax
+		irmovl src, %eax
+		pushl %eax
+		call copy_block
+		halt
+
+copy_block:
+		pushl %ebp
+		rrmovl %esp, %ebp
+		mrmovl 16(%ebp), %esi		# esi = len
+		mrmovl 12(%ebp), %ebx		# ebx = dest
+		mrmovl 8(%ebp), %ecx		# ecx = src
+		xorl %eax, %eax				# eax = result = 0
+
+Loop:	andl %esi, %esi				# while(len > 0)
+		je End
+		mrmovl (%ecx), %edi			# val = *src
+		irmovl $4, %edx
+		addl %edx, %ecx				# src++
+		rmmovl %edi, (%ebx)			# *dest = val
+		addl %edx, %ebx				# dest++
+		xorl %edi, %eax				# result ^= val
+		irmovl $1, %edx
+		subl %edx, %esi				# len--
+		jmp Loop
+
+End:	rrmovl %ebp, %esp
+		popl %ebp
+		ret
+
+
+.align 4
+#	Source block
+src:
+		.long 0x00a
+		.long 0x0b0
+		.long 0xc00
+
+#	Destination block
+dest:
+		.long 0x111
+		.long 0x222
+		.long 0x333
+
+#	Stack
+		.pos 0x100
+Stack:

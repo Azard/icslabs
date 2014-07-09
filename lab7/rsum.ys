@@ -1,0 +1,49 @@
+#	Name:熊伟伦	ID:5120379076
+#	rsum_list y86 asm
+		.pos 0
+init:	irmovl Stack, %esp
+		irmovl Stack, %ebp
+		irmovl ele1, %ebx
+		pushl %ebx
+		call rsum_list
+		halt
+
+rsum_list:
+		pushl %ebp
+		rrmovl %esp, %ebp
+		mrmovl 8(%ebp), %ebx		# ebx = elex
+		andl %ebx, %ebx				# while(ls)
+		je End
+
+		mrmovl (%ebx), %ecx			# get val
+		pushl %ecx
+		mrmovl 4(%ebx), %ebx		# ebx = ele1->next
+		pushl %ebx					# function element
+		call rsum_list
+		popl %ebx					# in order for val				
+		popl %ecx					# get the val
+		addl %ecx, %eax				# add val to return value
+		rrmovl %ebp, %esp
+		popl %ebp
+		ret
+
+End:	xorl %eax,%eax
+		rrmovl %ebp, %esp
+		popl %ebp
+		ret
+
+# Sample linked list
+.align 4
+ele1:
+		.long 0x00a
+		.long ele2
+ele2:
+		.long 0x0b0
+		.long ele3
+ele3:
+		.long 0xc00
+		.long 0
+
+#	Stack
+		.pos 0x100
+Stack:

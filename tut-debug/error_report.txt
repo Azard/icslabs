@@ -1,0 +1,102 @@
+/*
+ * BUG#0
+ * description: 
+     miss semicolon
+ * location: 
+ *   int a = 10  (line 18)
+ * evidence: 
+ *   test.c:19: error: two or more data types in declaration specifiers
+ */
+
+BUG#1
+description:
+    miss semicolon
+location:
+    enum { buf_size = buf_nrec * 100 } (line 52)
+evidence:
+    
+
+
+BUG#2
+description:
+    FILE unclear
+location:
+    #inclue <stdio.h>
+evidence:
+
+
+
+BUG#3
+description:
+	miss {
+location:
+	forget
+evidence:
+
+
+
+BUG#4
+description:
+	j++ to i++
+location:
+	forget
+evidence:
+
+
+
+BUG#5
+description:
+	<= to <
+location:
+	forget
+evidence:
+
+
+
+BUG#6
+description:
+	char *buf = (char *)malloc(buf_nrec*sizeof(record_t)-7) ;
+location:
+	line 184
+evidence:
+
+
+
+
+BUG#7
+description:
+
+location:
+
+evidence:
+
+
+
+
+BUG#8
+description:
+
+location:
+
+evidence:
+
+
+
+
+BUG#9
+description:
+
+location:
+
+evidence:
+
+
+
+
+BUG#10
+description:
+
+location:
+
+evidence:
+

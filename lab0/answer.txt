@@ -1,0 +1,5 @@
+ps -au --sort cmd
+cat /usr/share/dict/words | grep ^a -c
+ls -sSr | grep .conf | head -5
+echo hello world >> echo.sh | cat echo.sh
+

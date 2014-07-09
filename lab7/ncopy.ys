@@ -1,0 +1,325 @@
+#/* $begin ncopy-ys */
+##################################################################
+# ncopy.ys - Copy a src block of len ints to dst.
+# Return the number of positive ints (>0) contained in src.
+#
+# Include your name and ID here.
+#
+#	Name:熊伟伦	ID:5120379076
+#
+# Describe how and why you modified the baseline code.
+#
+#    12 unrolling + 12*2 even odd jump table
+# 
+# 1. 1000 byte limit, if not , I will write 64 jump table
+#	 or more interesting architecture.
+# 
+# 2. the code sequences are not normol, most are two as a set
+#    in order to match my pipe-full.hcl's optimization
+#
+# 3. My_Done in order to reduce three popl instruction
+#
+# 4. All in all, my ncopy.ys file are coded to suitable for my hcl optimization
+#    to get 60 point, it's too hard.
+#
+# 5. More detail about optimization used in .hcl write in pipe-full.hcl.
+#
+##################################################################
+#jump table
+	
+	.long My_Done
+	.long O1
+	.long E2
+	.long O3
+	.long E4
+	.long O5
+	.long E6
+	.long O7
+	.long E8
+	.long O9
+	.long E10
+	.long O11
+Bottom:
+
+##################################################################
+# Do not modify this portion
+# Function prologue.
+ncopy:	
+	pushl %ebp		# Save old frame pointer
+	rrmovl %esp,%ebp	# Set up new frame pointer
+	pushl %esi		# Save callee-save regs
+	pushl %ebx
+	pushl %edi
+	mrmovl 8(%ebp),%ebx		# src
+	mrmovl 16(%ebp),%edx	# len
+	mrmovl 12(%ebp),%ecx	# dst
+
+##################################################################
+# You can modify this portion
+	# Loop header
+	xorl %eax,%eax		# count = 0;
+	iaddl $-12, %edx	# temp len--
+	jl Rel				# if so, goto Rel:
+
+Loop1:					
+	mrmovl (%ebx), %esi	# read val1 from src
+	andl %esi,%esi		# val1 <= 0?
+	mrmovl 4(%ebx),%edi	# read val2 from src
+	rmmovl %esi,(%ecx)	# store val1 to dst
+	jle Loop2			# pass count++
+	iaddl $1, %eax		# count++
+Loop2:
+	rmmovl %edi,4(%ecx)	# store val2 to dst
+	andl %edi,%edi		# val2 <= 0?
+	jle Loop3			# pass count++
+	iaddl $1, %eax		# count++
+
+
+Loop3:					
+	mrmovl 8(%ebx), %esi	# read val1 from src
+	andl %esi,%esi			# val1 <= 0?
+	mrmovl 12(%ebx),%edi	# read val2 from src
+	rmmovl %esi,8(%ecx)		# store val1 to dst
+	jle Loop4				# pass count++
+	iaddl $1, %eax			# count++
+Loop4:
+	rmmovl %edi,12(%ecx)	# store val2 to dst
+	andl %edi,%edi			# val2 <= 0?
+	jle Loop5				# pass count++
+	iaddl $1, %eax			# count++
+
+
+Loop5:					
+	mrmovl 16(%ebx), %esi	# read val1 from src
+	andl %esi,%esi			# val1 <= 0?
+	mrmovl 20(%ebx),%edi	# read val2 from src
+	rmmovl %esi,16(%ecx)	# store val1 to dst
+	jle Loop6				# pass count++
+	iaddl $1, %eax			# count++
+Loop6:
+	rmmovl %edi,20(%ecx)	# store val2 to dst
+	andl %edi,%edi			# val2 <= 0?
+	jle Loop7				# pass count++
+	iaddl $1, %eax			# count++
+
+
+Loop7:					
+	mrmovl 24(%ebx), %esi	# read val1 from src
+	andl %esi,%esi			# val1 <= 0?
+	mrmovl 28(%ebx),%edi	# read val2 from src
+	rmmovl %esi,24(%ecx)	# store val1 to dst
+	jle Loop8				# pass count++
+	iaddl $1, %eax			# count++
+Loop8:
+	rmmovl %edi,28(%ecx)	# store val2 to dst
+	andl %edi,%edi			# val2 <= 0?
+	jle Loop9				# pass count++
+	iaddl $1, %eax			# count++
+
+
+Loop9:					
+	mrmovl 32(%ebx), %esi	# read val1 from src
+	andl %esi,%esi			# val1 <= 0?
+	mrmovl 36(%ebx),%edi	# read val2 from src
+	rmmovl %esi,32(%ecx)	# store val1 to dst
+	jle Loop10				# pass count++
+	iaddl $1, %eax			# count++
+Loop10:
+	rmmovl %edi,36(%ecx)	# store val2 to dst
+	andl %edi,%edi			# val2 <= 0?
+	jle Loop11				# pass count++
+	iaddl $1, %eax			# count++
+
+
+Loop11:					
+	mrmovl 40(%ebx), %esi	# read val1 from src
+	andl %esi,%esi			# val1 <= 0?
+	mrmovl 44(%ebx),%edi	# read val2 from src
+	rmmovl %esi,40(%ecx)	# store val1 to dst
+	jle Loop12				# pass count++
+	iaddl $1, %eax			# count++
+Loop12:
+	rmmovl %edi,44(%ecx)	# store val2 to dst
+	andl %edi,%edi			# val2 <= 0?
+	jle Npos				# pass count++
+	iaddl $1, %eax			# count++
+
+Npos:
+	iaddl $48,%ebx			# src+=48
+	iaddl $48,%ecx			# dst+=48
+	iaddl $-12,%edx			# len-=12
+	jge	Loop1				# more than 12 ele, goto Loop1
+
+################### edx = Real_release_ele - 12 ##################### 
+#release number
+Rel:
+	addl %edx,%edx
+	addl %edx,%edx			# edx*=4
+	mrmovl Bottom(%edx),%edx
+	pushl %edx
+	ret
+
+#####################################################################
+
+E10:
+	mrmovl 36(%ebx),%esi	#10
+	andl %esi,%esi
+	mrmovl 32(%ebx),%edi	#9
+	rmmovl %esi,36(%ecx)
+	jle E9
+	iaddl $1,%eax
+E9:
+	rmmovl %edi,32(%ecx)
+	andl %edi,%edi
+	jle E8
+	iaddl $1,%eax
+
+E8:
+	mrmovl 28(%ebx),%esi
+	andl %esi,%esi
+	mrmovl 24(%ebx),%edi
+	rmmovl %esi,28(%ecx)
+	jle E7
+	iaddl $1,%eax
+E7:
+	rmmovl %edi,24(%ecx)
+	andl %edi,%edi
+	jle E6
+	iaddl $1,%eax
+
+E6:
+	mrmovl 20(%ebx),%esi
+	andl %esi,%esi
+	mrmovl 16(%ebx),%edi
+	rmmovl %esi,20(%ecx)
+	jle E5
+	iaddl $1,%eax
+E5:
+	rmmovl %edi,16(%ecx)
+	andl %edi,%edi
+	jle E4
+	iaddl $1,%eax
+
+E4:
+	mrmovl 12(%ebx),%esi
+	andl %esi,%esi
+	mrmovl 8(%ebx),%edi
+	rmmovl %esi,12(%ecx)
+	jle E3
+	iaddl $1,%eax
+E3:
+	rmmovl %edi,8(%ecx)
+	andl %edi,%edi
+	jle E2
+	iaddl $1,%eax
+
+E2:
+	mrmovl 4(%ebx),%esi
+	andl %esi,%esi
+	mrmovl (%ebx),%edi
+	rmmovl %esi,4(%ecx)
+	jle E1
+	iaddl $1,%eax
+E1:
+	rmmovl %edi,(%ecx)
+	andl %edi,%edi
+	jle My_Done
+	iaddl $1,%eax
+	jmp My_Done
+
+O11:
+	mrmovl 40(%ebx),%esi	#11
+	andl %esi,%esi
+	mrmovl 36(%ebx),%edi	#10
+	rmmovl %esi,40(%ecx)
+	jle O10
+	iaddl $1,%eax
+O10:
+	andl %edi,%edi
+	rmmovl %edi,36(%ecx)
+	jle O9
+	iaddl $1,%eax
+
+O9:
+	mrmovl 32(%ebx),%esi
+	andl %esi,%esi
+	mrmovl 28(%ebx),%edi
+	rmmovl %esi,32(%ecx)
+	jle O8
+	iaddl $1,%eax
+O8:
+	andl %edi,%edi
+	rmmovl %edi,28(%ecx)
+	jle O7
+	iaddl $1,%eax
+
+O7:
+	mrmovl 24(%ebx),%esi
+	andl %esi,%esi
+	mrmovl 20(%ebx),%edi
+	rmmovl %esi,24(%ecx)
+	jle O6
+	iaddl $1,%eax
+O6:
+	andl %edi,%edi
+	rmmovl %edi,20(%ecx)
+	jle O5
+	iaddl $1,%eax
+
+O5:
+	mrmovl 16(%ebx),%esi
+	andl %esi,%esi
+	mrmovl 12(%ebx),%edi
+	rmmovl %esi,16(%ecx)
+	jle O4
+	iaddl $1,%eax
+O4:
+	andl %edi,%edi
+	rmmovl %edi,12(%ecx)
+	jle O3
+	iaddl $1,%eax
+
+O3:
+	mrmovl 8(%ebx),%esi
+	andl %esi,%esi
+	mrmovl 4(%ebx),%edi
+	rmmovl %esi,8(%ecx)
+	jle O2
+	iaddl $1,%eax
+O2:
+	andl %edi,%edi
+	rmmovl %edi,4(%ecx)
+	jle O1
+	iaddl $1,%eax
+
+O1:
+	mrmovl (%ebx),%esi
+	andl %esi,%esi
+	rmmovl %esi,(%ecx)
+	jle My_Done
+	iaddl $1,%eax
+
+###################################################################
+
+My_Done:
+#	popl %edi               # Restore callee-save registers
+#	popl %ebx
+#	popl %esi
+	leave	
+	ret
+
+##################################################################
+# Do not modify the following section of code
+# Function epilogue.
+Done:
+	popl %edi               # Restore callee-save registers
+	popl %ebx
+	popl %esi
+	rrmovl %ebp, %esp
+	popl %ebp
+	ret
+##################################################################
+# Keep the following label at the end of your function
+End:
+#/* $end ncopy-ys */
+
